@@ -22,11 +22,11 @@ def decision_tree_learning(examples, attributes, parent_examples):
         return plurality_value(examples)
     else:
         A = max([importance(a, examples) for a in attributes])
-        tree = DecisionTree(test=A)
+        tree = DecisionTree(attr=A)
         for vk in A:
             exs = set()
             subtree = decision_tree_learning(exs, attributes - A, examples)
-            tree.add_branch(A=vk, subtree=subtree)
+            tree.add_branch(vk=vk, subtree=subtree)
 
     return tree
 
@@ -44,35 +44,36 @@ def importance(attr, examples):
 
 
 class DecisionTree:
-    def __init__(self, test):
-        self.test = test
+    def __init__(self, attr, value=None):
+        """
+        Only pass `value` is the branch is a leaf node
+        :param attr:
+        :param value:
+        :return:
+        """
+        self.attr = attr
         self.branches = dict()
-        self.is_leaf_node = True
-        self.value = "Value for {}".format(self.test)
+        self.is_leaf_node = False if value is None else True
+        self.value = value
 
-    def add_branch(self, A, subtree):
+    def add_branch(self, vk, subtree):
         if isinstance(subtree, DecisionTree):
-            self.is_leaf_node = False
-            self.branches[A] = subtree
+            self.branches[vk] = subtree
         else:
-            self.value = subtree
-
-    def exec_branch(self, vk):
-        for attr, subtree in self.branches.items():
-            if attr == vk:
-                return subtree
+            self.branches[vk] = DecisionTree(attr="Leaf", value=subtree)
 
     def eval(self, example: dict):
         # TODO: check that all required attributes (including those that occur
         # in all sub-branches) are found in the example
 
-        # pass a dict excluding self.name {i:a[i] for i in a if i!=0}
-        if example[self.name] == self.value:
-            if self.is_leaf_node:
-                return self.value
-            else:
-                for b in self.branches:
-                    return b.eval(example)
+        tree = self
+        while not tree.is_leaf_node:
+            try:
+                tree = tree.branches[example[tree.attr]]
+            except KeyError:
+                raise ValueError("Value '{}' not found among branches for "
+                                 "{}".format(example[tree.attr], tree.attr))
+        return tree.value
 
     def __str__(self):
         """
@@ -88,17 +89,14 @@ class DecisionTree:
                     Attribute4 = value2: Yes
                 Attribute3 = value2: No
         """
-        s = "{attr} = {val}{goal}\n".format(
-            attr=self.name, val=self.test,
-            goal=": " + self.value if self.is_leaf_node else ""
-        )
-
-        # TODO: recursively iterate this for each branch??
-        for b in self.branches:
-            s += "{attr} = {val}{goal}\n".format(
-                attr=b.name, val=b.test,
-                goal=": " + b.value if b.is_leaf_node else ""
-            )
+        if self.is_leaf_node:
+            return "Leaf node returns {}\n".format(self.value)
+        s = ""
+        # TODO: recursively iterate this for each branch
+        tree = self
+        for vk, subtree in tree.branches.items():
+            s += "{attr} == {val}\n".format(attr=tree.attr, val=vk)
+            s += "  " + "\n  ".join(str(subtree).split('\n'))[:-2]
         return s
 
 
@@ -109,9 +107,25 @@ if __name__ == '__main__':
     example3 = {"Patrons": "Full", "Hungry": "Yes"}
     example4 = {"Patrons": "Full", "Hungry": "No"}
 
-    tree = DecisionTree(test="None")
+    # root tree
+    tree = DecisionTree(attr="Patrons")
 
-    print(tree.value)
+    # sub branch
+    sub1 = DecisionTree(attr="Hungry")
+    sub1.add_branch("Yes", "Yes")
+    sub1.add_branch("No", "No")
+    # print(sub1)
+
+    tree.add_branch("None", "No")
+    tree.add_branch("Some", "Yes")
+    tree.add_branch("Full", sub1)
+
+    print(tree)
+
+    # print(tree.eval(example1))
+    # print(tree.eval(example2))
+    # print(tree.eval(example3))
+    # print(tree.eval(example4))
 
 
 
