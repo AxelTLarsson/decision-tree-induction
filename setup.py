@@ -105,4 +105,6 @@ setup(
             'run=decision_trees:main',
         ],
     },
+
+    test_suite='tests',
 )
