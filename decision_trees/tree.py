@@ -3,7 +3,7 @@ Module containing decision tree induction.
 """
 
 
-def decision_tree_learning(examples, attributes, parent_examples):
+def decision_tree_learning(examples: list, attributes: list, parent_examples):
     """
     Decision tree learning algorithm as given in figure 18.5 in Artificial
     Intelligence A Modern Approach.
@@ -24,8 +24,9 @@ def decision_tree_learning(examples, attributes, parent_examples):
         A = max([importance(a, examples) for a in attributes])
         tree = DecisionTree(attr=A)
         for vk in A:
-            exs = set()
-            subtree = decision_tree_learning(exs, attributes - A, examples)
+            exs = [e for e in examples if e.get(A) == vk]
+            att = [a for a in attributes if a != A]
+            subtree = decision_tree_learning(exs, att, examples)
             tree.add_branch(vk=vk, subtree=subtree)
 
     return tree
@@ -44,28 +45,25 @@ def importance(attr, examples):
 
 
 class DecisionTree:
-    def __init__(self, attr, value=None):
-        """
-        Only pass `value` is the branch is a leaf node
-        :param attr:
-        :param value:
-        :return:
-        """
+    def __init__(self, attr):
         self.attr = attr
         self.branches = dict()
-        self.is_leaf_node = False if value is None else True
-        self.value = value
+        self.is_leaf_node = False
+        self.value = None
 
     def add_branch(self, vk, subtree):
         if isinstance(subtree, DecisionTree):
             self.branches[vk] = subtree
         else:
-            self.branches[vk] = DecisionTree(attr="Leaf", value=subtree)
+            # Just add a dummy branch which is a leaf node and contains
+            # the required value
+            self.branches[vk] = DecisionTree(attr="Leaf")
+            self.branches[vk].is_leaf_node = True
+            self.branches[vk].value = subtree
 
     def eval(self, example: dict):
         # TODO: check that all required attributes (including those that occur
         # in all sub-branches) are found in the example
-
         tree = self
         while not tree.is_leaf_node:
             try:
@@ -92,7 +90,6 @@ class DecisionTree:
         if self.is_leaf_node:
             return "Leaf node returns {}\n".format(self.value)
         s = ""
-        # TODO: recursively iterate this for each branch
         tree = self
         for vk, subtree in tree.branches.items():
             s += "{attr} == {val}\n".format(attr=tree.attr, val=vk)
@@ -114,7 +111,6 @@ if __name__ == '__main__':
     sub1 = DecisionTree(attr="Hungry")
     sub1.add_branch("Yes", "Yes")
     sub1.add_branch("No", "No")
-    # print(sub1)
 
     tree.add_branch("None", "No")
     tree.add_branch("Some", "Yes")
@@ -122,10 +118,9 @@ if __name__ == '__main__':
 
     print(tree)
 
-    # print(tree.eval(example1))
-    # print(tree.eval(example2))
-    # print(tree.eval(example3))
-    # print(tree.eval(example4))
-
+    print(tree.eval(example1))
+    print(tree.eval(example2))
+    print(tree.eval(example3))
+    print(tree.eval(example4))
 
 
