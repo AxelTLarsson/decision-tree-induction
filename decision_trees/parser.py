@@ -20,7 +20,7 @@ class Lexer:
         token_specification = [
             ('COMMENT', r'%.*'),                    # One-line comment
             ('RELATION_DECL', r'@relation'),        # Relation declaration
-            ('STRING', r'(\w+[-]\w+)+'),            # A string, ok with '-'
+            ('STRING', r'\w+(?:-?\w+)+'),            # A string, ok with '-'
             ('ATTR_DECL', r'@attribute'),           # Attribute declaration
             # Numeric datatypes; numeric, integer, real treated same
             ('NUM_DATATYPE', r'numeric|integer|real'),
@@ -47,7 +47,7 @@ class Lexer:
             if typ == 'NEWLINE':
                 line_start = pos
                 line += 1
-            elif typ != 'SKIP':
+            elif typ != 'SKIP' and typ != 'COMMENT':
                 val = mo.group(typ)
                 if typ == 'STRING' and val in keywords:
                     typ = val
@@ -61,6 +61,7 @@ class Lexer:
 
 if __name__ == '__main__':
     test = '''
+
     @data
     4.4,?,1.5,?,Iris-setosa
     '''
