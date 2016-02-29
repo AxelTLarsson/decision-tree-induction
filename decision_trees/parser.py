@@ -88,7 +88,6 @@ class Parser:
         try:
             self.current_token = next(self.token_generator)
         except StopIteration:
-            print('Parsing done')
             self.current_token = None
 
     def parse(self):
