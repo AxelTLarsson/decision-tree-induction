@@ -5,37 +5,6 @@ Module containing decision tree induction.
 from collections import Counter
 
 
-def decision_tree_learning(examples: list, attributes: list, parent_examples):
-    """
-    Decision tree learning algorithm as given in figure 18.5 in Artificial
-    Intelligence A Modern Approach.
-
-    :param examples: list of dictionaries containing examples to learn from
-    :param attributes: list of all attributes in the examples
-    :param parent_examples: list of all parent examples (can be the same as
-        `examples` when first running)
-    :return: DecisionTree, a decision tree
-    """
-
-    if not examples:
-        return plurality_value(parent_examples)
-    elif examples_have_same_classification(examples):
-        return examples[0]["classification"]
-    elif not attributes:
-        return plurality_value(examples)
-    else:
-        imp = [importance(a, examples) for a in attributes]
-        A = attributes[imp.index(max(imp))]  # essentially like argmax
-        tree = DecisionTree(attr=A)
-        for vk in get_attribute_values(A, examples):
-            exs = [e for e in examples if e.get(A) == vk]
-            att = [a for a in attributes if a != A]
-            subtree = decision_tree_learning(exs, att, examples)
-            tree.add_branch(vk=vk, subtree=subtree)
-
-    return tree
-
-
 def get_attribute_values(attr: str, examples: list):
     return set([e[attr] for e in examples])
 
@@ -61,8 +30,12 @@ def examples_have_same_classification(examples: list):
     return True
 
 
-def importance(attr, examples):
+def basic_importance(attr: str, examples: list):
     return 1
+
+
+def entropy_importance(attr: str, examples: list):
+    pass
 
 
 class DecisionTree:
@@ -116,6 +89,41 @@ class DecisionTree:
             s += "{attr} == {val}\n".format(attr=tree.attr, val=vk)
             s += "  " + "\n  ".join(str(subtree).split('\n'))[:-2]
         return s
+
+
+def decision_tree_learning(examples: list, attributes: list, parent_examples,
+                           importance_function: callable = basic_importance):
+    """
+    Decision tree learning algorithm as given in figure 18.5 in Artificial
+    Intelligence A Modern Approach.
+
+    :param examples: list of dictionaries containing examples to learn from
+    :param attributes: list of all attributes in the examples
+    :param parent_examples: list of all parent examples (can be the same as
+        `examples` when first running)
+    :param importance_function: function that takes an attribute (str) and a
+        list of examples and returns a number representing the importance of
+        that attribute
+    :return: DecisionTree, a decision tree
+    """
+
+    if not examples:
+        return plurality_value(parent_examples)
+    elif examples_have_same_classification(examples):
+        return examples[0]["classification"]
+    elif not attributes:
+        return plurality_value(examples)
+    else:
+        imp = [importance_function(a, examples) for a in attributes]
+        A = attributes[imp.index(max(imp))]  # essentially like argmax
+        tree = DecisionTree(attr=A)
+        for vk in get_attribute_values(A, examples):
+            exs = [e for e in examples if e.get(A) == vk]
+            att = [a for a in attributes if a != A]
+            subtree = decision_tree_learning(exs, att, examples)
+            tree.add_branch(vk=vk, subtree=subtree)
+
+    return tree
 
 
 if __name__ == '__main__':

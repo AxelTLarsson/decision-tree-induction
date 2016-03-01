@@ -52,8 +52,6 @@ class TestDecisionTree(TestCase):
         self.assertEqual(tree.plurality_value(l2), "Yes")
 
     def test_get_attribute_values(self):
-
-        # build an example tree
         ex1 = {"Patrons": "None", "Hungry": "Yes", "classification": "No"}
         ex2 = {"Patrons": "Some", "Hungry": "Yes", "classification": "Yes"}
         ex3 = {"Patrons": "Full", "Hungry": "Yes", "classification": "Yes"}
@@ -66,4 +64,46 @@ class TestDecisionTree(TestCase):
 
         self.assertEqual(tree.get_attribute_values("Hungry", examples),
                          {"No", "Yes"})
+
+    def test_decision_tree_learning_algorithm_order_1(self):
+        ex1 = {"Patrons": "None", "Hungry": "Yes", "classification": "No"}
+        ex2 = {"Patrons": "Some", "Hungry": "Yes", "classification": "Yes"}
+        ex3 = {"Patrons": "Full", "Hungry": "Yes", "classification": "Yes"}
+        ex4 = {"Patrons": "Full", "Hungry": "No", "classification": "No"}
+
+        attributes = ["Patrons", "Hungry"]
+        examples = [ex1, ex2, ex3, ex4]
+
+        t = tree.decision_tree_learning(examples, attributes, examples)
+
+        ex1 = {"Patrons": "None", "Hungry": "Yes"}
+        ex2 = {"Patrons": "Some", "Hungry": "Yes"}
+        ex3 = {"Patrons": "Full", "Hungry": "Yes"}
+        ex4 = {"Patrons": "Full", "Hungry": "No"}
+
+        self.assertEqual(t.eval(ex1), "No")
+        self.assertEqual(t.eval(ex2), "Yes")
+        self.assertEqual(t.eval(ex3), "Yes")
+        self.assertEqual(t.eval(ex4), "No")
+
+    def test_decision_tree_learning_algorithm_order_2(self):
+        ex1 = {"Patrons": "None", "Hungry": "Yes", "classification": "No"}
+        ex2 = {"Patrons": "Some", "Hungry": "Yes", "classification": "Yes"}
+        ex3 = {"Patrons": "Full", "Hungry": "Yes", "classification": "Yes"}
+        ex4 = {"Patrons": "Full", "Hungry": "No", "classification": "No"}
+
+        attributes = ["Hungry", "Patrons"]
+        examples = [ex1, ex2, ex3, ex4]
+
+        t = tree.decision_tree_learning(examples, attributes, examples)
+
+        ex1 = {"Patrons": "None", "Hungry": "Yes"}
+        ex2 = {"Patrons": "Some", "Hungry": "Yes"}
+        ex3 = {"Patrons": "Full", "Hungry": "Yes"}
+        ex4 = {"Patrons": "Full", "Hungry": "No"}
+
+        self.assertEqual(t.eval(ex1), "No")
+        self.assertEqual(t.eval(ex2), "Yes")
+        self.assertEqual(t.eval(ex3), "Yes")
+        self.assertEqual(t.eval(ex4), "No")
 
