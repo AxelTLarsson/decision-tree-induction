@@ -7,17 +7,17 @@
 %
 @RELATION restaurant
 
-@ATTRIBUTE Alternate    {No,Yes}
-@ATTRIBUTE Bar          {No,Yes}
-@ATTRIBUTE Friday       {No,Yes}
-@ATTRIBUTE Hungry       {No,Yes}
-@ATTRIBUTE Patrons      {None,Some,Full}
-@ATTRIBUTE Price        {$,$$,$$$}
-@ATTRIBUTE Rain         {No,Yes}
-@ATTRIBUTE Reservation  {No,Yes}
-@ATTRIBUTE Type         {Burger,French,Italian,Thai}
-@ATTRIBUTE Estimate     {0-10,10-30,30-60,>60}
-@ATTRIBUTE WillWait     {No,Yes}
+@ATTRIBUTE Alternate      {No,Yes}
+@ATTRIBUTE Bar            {No,Yes}
+@ATTRIBUTE Friday         {No,Yes}
+@ATTRIBUTE Hungry         {No,Yes}
+@ATTRIBUTE Patrons        {None,Some,Full}
+@ATTRIBUTE Price          {$,$$,$$$}
+@ATTRIBUTE Rain           {No,Yes}
+@ATTRIBUTE Reservation    {No,Yes}
+@ATTRIBUTE Type           {Burger,French,Italian,Thai}
+@ATTRIBUTE Estimate       {0-10,10-30,30-60,>60}
+@ATTRIBUTE classification {No,Yes}
 
 @DATA
 Yes,No,No,Yes,Some,$$$,No,Yes,French,0–10,Yes

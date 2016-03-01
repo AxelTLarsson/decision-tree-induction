@@ -1,5 +1,6 @@
 from unittest import TestCase
 from decision_trees import tree
+from decision_trees import parser
 
 
 class TestDecisionTree(TestCase):
@@ -107,3 +108,44 @@ class TestDecisionTree(TestCase):
         self.assertEqual(t.eval(ex3), "Yes")
         self.assertEqual(t.eval(ex4), "No")
 
+    def test_binary_entropy_function(self):
+        self.assertEqual(tree.B(0.5), 1)
+        self.assertAlmostEqual(tree.B(0.99), 0.0807931358959)
+
+    def test_entropy_importance_function_returns_equivalent_trees(self):
+
+        ex1 = {"Patrons": "None", "Hungry": "Yes", "classification": "No"}
+        ex2 = {"Patrons": "Some", "Hungry": "Yes", "classification": "Yes"}
+        ex3 = {"Patrons": "Full", "Hungry": "Yes", "classification": "Yes"}
+        ex4 = {"Patrons": "Full", "Hungry": "No", "classification": "No"}
+
+        examples = [ex1, ex2, ex3, ex4]
+
+        tree1 = tree.decision_tree_learning(
+            examples,
+            attributes=["Hungry", "Patrons"],
+            parent_examples=examples,
+            importance_function=tree.entropy_importance
+        )
+
+        tree2 = tree.decision_tree_learning(
+            examples,
+            attributes=["Patrons", "Hungry"],
+            parent_examples=examples,
+            importance_function=tree.entropy_importance
+        )
+
+        self.assertTrue(str(tree1) == str(tree2))
+
+    def test_entropy_importance_on_book_example(self):
+        data = parser.parse("data/restaurant.arff")
+
+        self.assertAlmostEqual(
+            tree.entropy_importance("Patrons", data.examples),
+            0.540852082973
+        )
+
+        self.assertAlmostEqual(
+            tree.entropy_importance("Type", data.examples),
+            0
+        )

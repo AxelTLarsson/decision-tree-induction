@@ -45,6 +45,13 @@ def entropy(attr: str, examples: list):
 
 
 def B(q):
+    """
+    Binary entropy function for boolean values.
+    q = 0.5 returns the maximum of 1
+    q = 0 and q = 1 returns the minimum values of 0
+    :param q: Boolean variable positive probability
+    :return: entropy
+    """
     if q == 0 or q == 1:
         return 0
     return -(q * log2(q) + (1 - q) * log2(1 - q))
@@ -153,22 +160,13 @@ def decision_tree_learning(examples: list, attributes: list, parent_examples,
 
 
 if __name__ == '__main__':
-    # build an example tree
-    ex1 = {"Patrons": "None", "Hungry": "Yes", "classification": "No"}
-    ex2 = {"Patrons": "Some", "Hungry": "Yes", "classification": "Yes"}
-    ex3 = {"Patrons": "Full", "Hungry": "Yes", "classification": "Yes"}
-    ex4 = {"Patrons": "Full", "Hungry": "No", "classification": "No"}
 
-    # attributes = ["Patrons", "Hungry"]
-    attributes = ["Hungry", "Patrons"]
-    examples = [ex1, ex2, ex3, ex4]
+    from decision_trees import parser
+    data = parser.parse("../data/restaurant.arff")
 
-    tree = decision_tree_learning(examples, attributes, examples,
+    attributes = list(data.attributes.keys())
+    attributes = [a for a in attributes if a != "classification"]
+
+    tree = decision_tree_learning(data.examples, attributes, data.examples,
                                   importance_function=entropy_importance)
     print(tree)
-
-    print(B(0.5))
-    print(B(0.99))
-
-
-
