@@ -20,7 +20,7 @@ class Lexer:
         token_specification = [
             ('COMMENT', r'%.*'),                    # One-line comment
             ('RELATION_DECL', r'@relation'),        # Relation declaration
-            ('STRING', r'\w+(?:-?\w+)+'),            # A string, ok with '-'
+            ('STRING', r'[\w$<>=]+(?:[-–]?[\w$<>=]+)*'),  # A string, ok with '-'
             ('ATTR_DECL', r'@attribute'),           # Attribute declaration
             # Numeric datatypes; numeric, integer, real treated same
             ('NUM_DATATYPE', r'numeric|integer|real'),
@@ -69,15 +69,15 @@ class Parser:
         self.current_token = None
 
     def accept(self, token_type):
-        if self.current_token.typ == token_type:
+        if self.current_token is None or self.current_token.typ != token_type:
+            raise RuntimeError(
+                "Cannot acccept {}, current_token: {}".format(
+                    token_type, self.current_token))
+        else:
             # print("\nAccept {}".format(self.current_token))
             t = self.current_token
             self.next_token()
             return t
-        else:
-            raise RuntimeError(
-                "Cannot acccept {}, current_token: {}".format(
-                    token_type, self.current_token))
 
     def expect(self, token_type):
         if self.current_token is None:
