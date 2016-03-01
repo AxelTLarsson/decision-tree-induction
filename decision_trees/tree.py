@@ -3,6 +3,7 @@ Module containing decision tree induction.
 """
 
 from collections import Counter
+from numpy import log2
 
 
 def get_attribute_values(attr: str, examples: list):
@@ -34,8 +35,33 @@ def basic_importance(attr: str, examples: list):
     return 1
 
 
+def entropy(attr: str, examples: list):
+    n = len(examples)
+    entropy = 0
+    for vk in get_attribute_values(attr, examples):
+        p = len([1 for e in examples if e[attr] == vk]) / n
+        entropy -= p * log2(p)
+    return entropy
+
+
+def B(q):
+    if q == 0 or q == 1:
+        return 0
+    return -(q * log2(q) + (1 - q) * log2(1 - q))
+
+
 def entropy_importance(attr: str, examples: list):
-    pass
+    p = len([1 for e in examples if e["classification"] == "Yes"])
+    n = len([1 for e in examples if e["classification"] == "No"])
+
+    remainder = 0
+    for d in get_attribute_values(attr, examples):
+        subset = [e for e in examples if e[attr] == d]
+        pk = len([1 for e in subset if e["classification"] == "Yes"])
+        nk = len([1 for e in subset if e["classification"] == "No"])
+        remainder += (pk + nk) / (p + n) * B(pk / (pk + nk))
+
+    return B(p / (p + n)) - remainder
 
 
 class DecisionTree:
@@ -137,8 +163,12 @@ if __name__ == '__main__':
     attributes = ["Hungry", "Patrons"]
     examples = [ex1, ex2, ex3, ex4]
 
-    tree = decision_tree_learning(examples, attributes, examples)
+    tree = decision_tree_learning(examples, attributes, examples,
+                                  importance_function=entropy_importance)
     print(tree)
+
+    print(B(0.5))
+    print(B(0.99))
 
 
 
