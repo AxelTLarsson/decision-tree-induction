@@ -5,24 +5,41 @@ import collections
 import re
 
 
+def parse(file):
+    """
+    Helper method to parse a file,
+    returns a Data representation of the source file.
+    """
+    with open(file, 'r') as f:
+        s = f.read()
+        parser = Parser(Lexer.tokenize(s))
+        return parser.parse()
+
+
 class Lexer:
     """
     The lexer (a.k.a scanner) is reponsible for tokenising the
     input string.
     At this moment it works by accepting a string with the contents
-    to be tokenised the source file. In general this should probably
+    to be tokenised; the entire source file. In general this should probably
     not done that way. Instead lazily reading the file probably...
+    However, the output is at lazy in the form of a generator
     """
     Token = collections.namedtuple('Token', ['typ', 'value', 'line', 'column'])
 
     def tokenize(s):
+        """
+        Returns a generator yielding tokens as long as any are available from
+        the string s.
+        """
         keywords = {'IF', 'THEN', 'ENDIF', 'NEXT', 'GOSUB', 'RETURN'}
         token_specification = [
             ('COMMENT', r'%.*'),                    # One-line comment
             ('RELATION_DECL', r'@relation'),        # Relation declaration
-            ('STRING', r'[\w$<>=]+(?:[-–]?[\w$<>=]+)*'),  # A string, ok with '-'
+            # A string, ok with '-' and '–' as well as $, <, >, =, _ (\w)
+            ('STRING', r'[\w$<>=]+(?:[-–]?[\w$<>=]+)*'),
             ('ATTR_DECL', r'@attribute'),           # Attribute declaration
-            # Numeric datatypes; numeric, integer, real treated same
+            # Numeric datatypes; numeric, integer, real: treated same
             ('NUM_DATATYPE', r'numeric|integer|real'),
             ('LEFT_CURLY', r'{'),                   # Match '{'
             ('RIGHT_CURLY', r'}'),                  # Match '}'
@@ -62,6 +79,7 @@ class Lexer:
 class Parser:
     """
     A simple recursive descent parser for a subset of Weka ARFF.
+    Currently only nominal datatypes for the attributes are supported.
     """
 
     def __init__(self, token_generator):

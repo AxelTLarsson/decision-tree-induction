@@ -44,4 +44,5 @@ class TestParser(TestCase):
             s = f.read()
             parser = Parser(Lexer.tokenize(s))
             data = parser.parse()
+            print(data)
 
