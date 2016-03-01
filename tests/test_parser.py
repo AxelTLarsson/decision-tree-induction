@@ -23,4 +23,5 @@ class TestParser(TestCase):
         with open('tests/contact-lenses.arff', 'r') as f:
             s = f.read()
             parser = Parser(Lexer.tokenize(s))
-            parser.parse()
+            data = parser.parse()
+            print(data)

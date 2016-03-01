@@ -96,26 +96,37 @@ class Parser:
 
         # Expecting @relation <string>
         self.accept("RELATION_DECL")
-        rel = self.accept('STRING')
-        print("Relation is {}".format(rel.value))
+        rel = self.accept('STRING').value
 
         # Expecting a number of @attribute <name> <datatype>
-        # TODO should refactor to new method
+        self.attributes = self.attributes()
+
+        # Expecting data section
+        if self.expect('DATA_DECL'):
+            data = self.data()
+        else:
+            raise RuntimeError('No DATA section found!')
+
+        return Data(rel, self.attributes, data)
+
+    def attributes(self):
+        """
+        Parse attribute decl lines, e.g. @attribute <name> <datatype>
+        """
+        dict = collections.OrderedDict()
         while self.expect('ATTR_DECL'):
             self.accept('ATTR_DECL')
             attr_name = self.accept('STRING')
-            print("@attribute {}".format(attr_name.value))
+            # print("@attribute {}".format(attr_name.value))
             if self.expect('NUM_DATATYPE'):
                 data_type = self.accept('NUM_DATATYPE')
-                print("datatype is {}".format(data_type.value))
+                # print("datatype is {}".format(data_type.value))
             elif self.expect('LEFT_CURLY'):
                 self.accept('LEFT_CURLY')
-                print(self.nominal_values())
-
-        if self.expect('DATA_DECL'):
-            self.data()
-        else:
-            raise RuntimeError('No DATA section found!')
+                dict[attr_name.value] = self.nominal_values()
+            else:
+                raise RuntimeError('Not implemented', self.current_token)
+        return dict
 
     def nominal_values(self):
         """
@@ -136,22 +147,59 @@ class Parser:
 
     def data(self):
         """
-        Parse the data section.
+        Parse the data section. Return a list of OrderedDicts,
+        one dict per example of the form 'attr1' : 'val1' etc.
         """
         self.accept('DATA_DECL')
 
         # loop through the whole data section
+        examples = []   # list for all examples
         while self.expect('STRING'):
 
-            datas = []
+            # iterator for the attribute names
+            attr_iter = iter(self.attributes)
+
+            # ordered dictionary for one example
+            example = collections.OrderedDict()
             data1 = self.accept('STRING')
-            datas.append(data1.value)
+            attr_name = next(attr_iter)
+            example[attr_name] = data1.value
             # one line
             while self.expect('SEMI'):
                 self.accept('SEMI')
                 data = self.accept('STRING')
-                datas.append(data.value)
-            print("Datas: {}".format(datas))
+                attr_name = next(attr_iter)
+                example[attr_name] = data.value
+
+            examples.append(example)
+
+        return examples
+
+
+class Data:
+    """
+    The data structure for the parser to build.
+    """
+
+    def __init__(self, relation, attributes, data):
+        self.relation = relation
+        self.attributes = attributes
+        # Expecting data to be a list of examples,
+        # where each example is a dictionary of the
+        # form { attribute1: val1, attribute2: val2,... }
+        self.examples = data
+
+    def __str__(self):
+        def data_string():
+            string = ""
+            for ex in self.examples:
+                string += str(ex) + "\n"
+            return string
+
+        return "Relation: {}\nAttributes: {}\nData:\n{}".format(
+            str(self.relation),
+            str(self.attributes),
+            data_string())
 
 
 if __name__ == '__main__':
