@@ -2,28 +2,32 @@
 Module containing decision tree induction.
 """
 
+from collections import Counter
+
 
 def decision_tree_learning(examples: list, attributes: list, parent_examples):
     """
     Decision tree learning algorithm as given in figure 18.5 in Artificial
     Intelligence A Modern Approach.
 
-    :param examples: XXX, examples containing attributes
-    :param attributes: XXX, list of attributes
-    :param parent_examples: XXX, list of parent examples
+    :param examples: list of dictionaries containing examples to learn from
+    :param attributes: list of all attributes in the examples
+    :param parent_examples: list of all parent examples (can be the same as
+        `examples` when first running)
     :return: DecisionTree, a decision tree
     """
 
     if not examples:
         return plurality_value(parent_examples)
     elif examples_have_same_classification(examples):
-        return examples[0].classification()
+        return examples[0]["classification"]
     elif not attributes:
         return plurality_value(examples)
     else:
-        A = max([importance(a, examples) for a in attributes])
+        imp = [importance(a, examples) for a in attributes]
+        A = attributes[imp.index(max(imp))]  # essentially like argmax
         tree = DecisionTree(attr=A)
-        for vk in A:
+        for vk in get_attribute_values(A, examples):
             exs = [e for e in examples if e.get(A) == vk]
             att = [a for a in attributes if a != A]
             subtree = decision_tree_learning(exs, att, examples)
@@ -32,12 +36,29 @@ def decision_tree_learning(examples: list, attributes: list, parent_examples):
     return tree
 
 
-def plurality_value(examples):
-    return 1
+def get_attribute_values(attr: str, examples: list):
+    return set([e[attr] for e in examples])
+
+
+def plurality_value(examples: list):
+    """
+    Returns the most common classification in a list of examples.
+
+    :param examples: list of dictionaries with examples as entries, must
+        contain the key "classification"
+    :return: str, most common classification
+    """
+    return Counter([e["classification"] for e in examples]).most_common(1)[0][0]
 
 
 def examples_have_same_classification(examples: list):
-    return [a != examples[0] for a in examples[1:]]
+    if len(examples) == 1:
+        return True
+    else:
+        for a in examples[1:]:
+            if a["classification"] != examples[0]["classification"]:
+                return False
+    return True
 
 
 def importance(attr, examples):
@@ -99,28 +120,17 @@ class DecisionTree:
 
 if __name__ == '__main__':
     # build an example tree
-    example1 = {"Patrons": "None", "Hungry": "Yes"}
-    example2 = {"Patrons": "Some", "Hungry": "Yes"}
-    example3 = {"Patrons": "Full", "Hungry": "Yes"}
-    example4 = {"Patrons": "Full", "Hungry": "No"}
+    ex1 = {"Patrons": "None", "Hungry": "Yes", "classification": "No"}
+    ex2 = {"Patrons": "Some", "Hungry": "Yes", "classification": "Yes"}
+    ex3 = {"Patrons": "Full", "Hungry": "Yes", "classification": "Yes"}
+    ex4 = {"Patrons": "Full", "Hungry": "No", "classification": "No"}
 
-    # root tree
-    tree = DecisionTree(attr="Patrons")
+    # attributes = ["Patrons", "Hungry"]
+    attributes = ["Hungry", "Patrons"]
+    examples = [ex1, ex2, ex3, ex4]
 
-    # sub branch
-    sub1 = DecisionTree(attr="Hungry")
-    sub1.add_branch("Yes", "Yes")
-    sub1.add_branch("No", "No")
-
-    tree.add_branch("None", "No")
-    tree.add_branch("Some", "Yes")
-    tree.add_branch("Full", sub1)
-
+    tree = decision_tree_learning(examples, attributes, examples)
     print(tree)
 
-    print(tree.eval(example1))
-    print(tree.eval(example2))
-    print(tree.eval(example3))
-    print(tree.eval(example4))
 
 
