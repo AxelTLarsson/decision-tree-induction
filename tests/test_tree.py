@@ -172,3 +172,9 @@ class TestDecisionTree(TestCase):
         for example in data.examples:
             classification = example['classification']
             self.assertEqual(d_tree.eval(example), classification)
+
+    def test_should_prune(self):
+        data = parser.parse("data/restaurant.arff")
+        attributes = list(data.attributes.keys())
+        for a in [a for a in attributes if a != "classification"]:
+            print(tree.should_prune(a, data.examples))

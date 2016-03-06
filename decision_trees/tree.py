@@ -4,6 +4,11 @@ Module containing decision tree induction.
 
 from collections import Counter
 from numpy import log2
+from scipy.stats import chisquare
+
+
+# The confidence level to be used when pruning
+CUTOFF = 0.05
 
 
 def get_attribute_values(attr: str, examples: list):
@@ -69,6 +74,37 @@ def entropy_importance(attr: str, examples: list):
         remainder += (pk + nk) / (p + n) * B(pk / (pk + nk))
 
     return B(p / (p + n)) - remainder
+
+
+def should_prune(attr, examples):
+    """
+    Decides if an attribute should be pruned. The decision is based on
+    the p-value of the chi-squared distribution, if it is higher than
+    CUTOFF then the branch should be pruned, otherwise not.
+    :param attr: str of the attribute to potentially be pruned
+    :param examples: the data
+    :return: to prune or not to prune
+    """
+    p = len([1 for e in examples if e["classification"] == "Yes"])
+    n = len([1 for e in examples if e["classification"] == "No"])
+    obs = []
+    exp = []
+    delta = 0
+    for d in get_attribute_values(attr, examples):
+        subset = [e for e in examples if e[attr] == d]
+        pk = len([1 for e in subset if e["classification"] == "Yes"])
+        nk = len([1 for e in subset if e["classification"] == "No"])
+        pk_hat = p * (pk + nk)/(p + n)
+        nk_hat = n * (pk + nk)/(p + n)
+        obs.append(pk)
+        exp.append(pk_hat)
+        obs.append(nk)
+        exp.append(nk_hat)
+        delta += ((pk - pk_hat)**2) / pk_hat + ((nk - nk_hat)**2) / nk_hat
+
+    chi2, p = chisquare(obs, f_exp=exp)
+    print("should_prune {} Δ: {} \u03C7\u00B2: {}, p: {}".format(attr, delta, chi2, p))
+    return p > CUTOFF
 
 
 class DecisionTree:
