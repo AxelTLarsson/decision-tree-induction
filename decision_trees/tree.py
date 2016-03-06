@@ -148,6 +148,9 @@ def decision_tree_learning(examples: list, attributes: list, parent_examples,
         return plurality_value(examples)
     else:
         imp = [importance_function(a, examples) for a in attributes]
+        for importance in imp:
+            print("importance: {}".format(importance))
+
         A = attributes[imp.index(max(imp))]  # essentially like argmax
         tree = DecisionTree(attr=A)
         for vk in get_attribute_values(A, examples):

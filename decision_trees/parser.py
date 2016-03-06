@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 The parser module for parsing the Weka ARFF format.
 """
@@ -43,7 +44,7 @@ class Lexer:
             ('NUM_DATATYPE', r'numeric|integer|real'),
             ('LEFT_CURLY', r'{'),                   # Match '{'
             ('RIGHT_CURLY', r'}'),                  # Match '}'
-            ('SEMI', r','),                         # Match ','
+            ('COMMA', r','),                         # Match ','
             # date and relational are left out of this impl for now
 
             ('DATA_DECL', r'@data'),                # Data declaration
@@ -155,8 +156,8 @@ class Parser:
         nominal_values = []
         nom1 = self.accept('STRING')
         nominal_values.append(nom1.value)
-        while self.expect('SEMI'):
-            self.accept('SEMI')
+        while self.expect('COMMA'):
+            self.accept('COMMA')
             nomx = self.accept('STRING')
             nominal_values.append(nomx.value)
 
@@ -183,8 +184,8 @@ class Parser:
             attr_name = next(attr_iter)
             example[attr_name] = data1.value
             # one line
-            while self.expect('SEMI'):
-                self.accept('SEMI')
+            while self.expect('COMMA'):
+                self.accept('COMMA')
                 data = self.accept('STRING')
                 attr_name = next(attr_iter)
                 example[attr_name] = data.value
@@ -221,4 +222,4 @@ class Data:
 
 
 if __name__ == '__main__':
-    pass
+    print("Running parser")

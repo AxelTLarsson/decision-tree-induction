@@ -53,7 +53,7 @@
 @attribute spectacle-prescrip   {myope, hypermetrope}
 @attribute astigmatism      {no, yes}
 @attribute tear-prod-rate   {reduced, normal}
-@attribute contact-lenses   {soft, hard, none}
+@attribute classification   {soft, hard, none}
 
 @data
 %

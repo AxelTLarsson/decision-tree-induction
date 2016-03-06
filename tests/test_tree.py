@@ -36,7 +36,7 @@ class TestDecisionTree(TestCase):
         self.assertTrue(tree.examples_have_same_classification([ex3, ex2]))
         self.assertTrue(tree.examples_have_same_classification([ex1, ex4]))
         self.assertFalse(tree.examples_have_same_classification(
-                [ex1, ex2, ex3]))
+            [ex1, ex2, ex3]))
 
     def test_plurality_value_function(self):
         ex1 = {"Hungry": "Yes", "classification": "No"}
@@ -149,3 +149,26 @@ class TestDecisionTree(TestCase):
             tree.entropy_importance("Type", data.examples),
             0
         )
+
+        self.assertEqual(
+            tree.entropy_importance("Alternate", data.examples),
+            0
+        )
+
+    def test_B(self):
+        # loaded coin
+        self.assertAlmostEqual(tree.B(0.99), 0.08, places=2)
+        # fair coin
+        self.assertEqual(tree.B(0.5), 1)
+
+    def test_eval(self):
+        data = parser.parse("data/restaurant.arff")
+        attributes = list(data.attributes.keys())
+        attrs = [a for a in attributes if a != "classification"]
+        d_tree = tree.decision_tree_learning(
+            data.examples, attrs,
+            data.examples,
+            importance_function=tree.entropy_importance)
+        for example in data.examples:
+            classification = example['classification']
+            self.assertEqual(d_tree.eval(example), classification)
