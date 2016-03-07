@@ -1,6 +1,9 @@
 """
 Module containing decision tree induction.
 """
+import sys
+import os
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 from collections import Counter
 from numpy import log2
