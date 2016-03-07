@@ -41,15 +41,6 @@ def basic_importance(attr: str, examples: list):
     return 1
 
 
-def entropy(attr: str, examples: list):
-    n = len(examples)
-    entropy = 0
-    for vk in get_attribute_values(attr, examples):
-        p = len([1 for e in examples if e[attr] == vk]) / n
-        entropy -= p * log2(p)
-    return entropy
-
-
 def B(q):
     """
     Binary entropy function for boolean values.
@@ -232,6 +223,42 @@ def decision_tree_learning(examples: list, attributes: list, parent_examples,
     return tree
 
 
+
+def multiclass_decision_tree_learning(examples: list, attributes: list,
+                                      parent_examples: list, classes: list):
+    """
+    Decision tree learning algorithm as given in figure 18.5 in Artificial
+    Intelligence A Modern Approach.
+
+    :param examples: list of dictionaries containing examples to learn from
+    :param attributes: list of all attributes in the examples
+    :param parent_examples: list of all parent examples (can be the same as
+        `examples` when first running)
+    :param importance_function: function that takes an attribute (str) and a
+        list of examples and returns a number representing the importance of
+        that attribute
+    :return: DecisionTree, a decision tree
+    """
+
+    if not examples:
+        return plurality_value(parent_examples)
+    elif examples_have_same_classification(examples):
+        return examples[0]["classification"]
+    elif not attributes:
+        return plurality_value(examples)
+    else:
+        imp = [generalised_entropy_importance(a, examples, classes) for a in attributes]
+        A = attributes[imp.index(max(imp))]  # essentially like argmax
+        tree = DecisionTree(attr=A)
+        for vk in get_attribute_values(A, examples):
+            exs = [e for e in examples if e.get(A) == vk]
+            att = [a for a in attributes if a != A]
+            subtree = multiclass_decision_tree_learning(exs, att, examples, classes)
+            tree.add_branch(vk=vk, subtree=subtree)
+
+    return tree
+
+
 def tree_performance(tree, data):
     correct = 0
     skipped = 0
@@ -302,6 +329,35 @@ def test_using_restaurant_example():
     print(tree_performance(tree, data))
 
 
+def test_using_restaurant_example_multiclass():
+    from decision_trees import parser
+    data = parser.parse("../data/restaurant.arff")
+
+    attributes = list(data.attributes.keys())
+    attributes = [a for a in attributes if a != "classification"]
+
+    tree = multiclass_decision_tree_learning(data.examples, attributes,
+                                             data.examples, classes=["Yes", "No"])
+    print(tree)
+    print(tree_performance(tree, data))
+
+
+def test_using_contact_lenses_example_multiclass():
+    from decision_trees import parser
+    data = parser.parse("../data/contact-lenses.arff")
+
+    attributes = list(data.attributes.keys())
+    classes = list(data.attributes.values())[-1]
+    attributes = [a for a in attributes if a != "classification"]
+
+    tree = multiclass_decision_tree_learning(data.examples, attributes,
+                                             data.examples, classes)
+    print(tree)
+    print(tree_performance(tree, data))
+
+
 if __name__ == '__main__':
     # test_using_restaurant_example()
-    restaurant_learning_curve_plot()
+    # test_using_restaurant_example_multiclass()
+    test_using_contact_lenses_example_multiclass()
+    # restaurant_learning_curve_plot()
