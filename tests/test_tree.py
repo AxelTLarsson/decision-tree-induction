@@ -205,7 +205,7 @@ class TestDecisionTree(TestCase):
         data = parser.parse("data/restaurant.arff")
         attributes = list(data.attributes.keys())
         for a in [a for a in attributes if a != "classification"]:
-            print(tree.should_prune(a, data.examples))
+            tree.should_prune(a, data.examples)
 
 
 if __name__ == '__main__':

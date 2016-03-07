@@ -130,7 +130,7 @@ def should_prune(attr, examples):
         delta += ((pk - pk_hat)**2) / pk_hat + ((nk - nk_hat)**2) / nk_hat
 
     chi2, p = chisquare(obs, f_exp=exp, ddof=len(attrs) - 1)
-    print("should_prune {} Δ: {} \u03C7\u00B2: {}, p: {}".format(attr, delta, chi2, p))
+    # print("should_prune {} Δ: {} \u03C7\u00B2: {}, p: {}".format(attr, delta, chi2, p))
     return p > CUTOFF
 
 
