@@ -356,8 +356,8 @@ def test_using_contact_lenses_example_multiclass():
     print(tree_performance(tree, data))
 
 
+def main():
+    test_using_restaurant_example_multiclass()
+
 if __name__ == '__main__':
-    # test_using_restaurant_example()
-    # test_using_restaurant_example_multiclass()
-    test_using_contact_lenses_example_multiclass()
-    # restaurant_learning_curve_plot()
+    main()
