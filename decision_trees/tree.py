@@ -8,7 +8,7 @@ from scipy.stats import chisquare
 
 
 # The confidence level to be used when pruning
-CUTOFF = 0.05
+CUTOFF = 0.15
 
 
 def get_attribute_values(attr: str, examples: list):
@@ -90,7 +90,8 @@ def should_prune(attr, examples):
     obs = []
     exp = []
     delta = 0
-    for d in get_attribute_values(attr, examples):
+    attrs = get_attribute_values(attr, examples)
+    for d in attrs:
         subset = [e for e in examples if e[attr] == d]
         pk = len([1 for e in subset if e["classification"] == "Yes"])
         nk = len([1 for e in subset if e["classification"] == "No"])
@@ -102,7 +103,7 @@ def should_prune(attr, examples):
         exp.append(nk_hat)
         delta += ((pk - pk_hat)**2) / pk_hat + ((nk - nk_hat)**2) / nk_hat
 
-    chi2, p = chisquare(obs, f_exp=exp)
+    chi2, p = chisquare(obs, f_exp=exp, ddof=len(attrs) - 1)
     print("should_prune {} Δ: {} \u03C7\u00B2: {}, p: {}".format(attr, delta, chi2, p))
     return p > CUTOFF
 
@@ -161,7 +162,7 @@ class DecisionTree:
 
 
 def decision_tree_learning(examples: list, attributes: list, parent_examples,
-                           importance_function: callable = basic_importance):
+                           importance_function: callable):
     """
     Decision tree learning algorithm as given in figure 18.5 in Artificial
     Intelligence A Modern Approach.
@@ -184,22 +185,76 @@ def decision_tree_learning(examples: list, attributes: list, parent_examples,
         return plurality_value(examples)
     else:
         imp = [importance_function(a, examples) for a in attributes]
-        for importance in imp:
-            print("importance: {}".format(importance))
-
         A = attributes[imp.index(max(imp))]  # essentially like argmax
         tree = DecisionTree(attr=A)
         for vk in get_attribute_values(A, examples):
             exs = [e for e in examples if e.get(A) == vk]
             att = [a for a in attributes if a != A]
-            subtree = decision_tree_learning(exs, att, examples)
+            subtree = decision_tree_learning(exs, att, examples,
+                                             importance_function)
             tree.add_branch(vk=vk, subtree=subtree)
 
     return tree
 
 
-if __name__ == '__main__':
+def tree_performance(tree, data):
+    correct = 0
+    skipped = 0
+    for e in data.examples:
+        try:
+            correct += tree.eval(e) == e["classification"]
+        except ValueError:
+            # found an example with an attribute value that hasn't been seen
+            # by the tree
+            skipped += 1
+        except AttributeError:
+            # tree likely built with all equal classifications, will naively
+            # classify everything as one classification
+            correct += tree == e["classification"]
 
+    return correct / (len(data.examples))
+
+
+def restaurant_learning_curve_plot():
+    import matplotlib.pyplot as plt
+    from decision_trees import parser
+    from numpy.random import randint
+    data = parser.parse("../data/restaurant.arff")
+
+    attributes = list(data.attributes.keys())
+    attributes = [a for a in attributes if a != "classification"]
+
+    def get_bootstrap_dataset(data, n_examples):
+        idx = randint(0, len(data.examples), n_examples)
+        examples = [data.examples[i] for i in idx]
+        attrs = set()
+        for e in examples:
+            attrs.intersection_update(e.keys())
+        return parser.Data("subset", attrs, examples)
+
+    navg = 20
+    results = list()
+    sizes = range(1, 101)
+    for training_set_size in sizes:
+
+        avg = 0
+        for _ in range(navg):  # averaged across 20 trials
+            train = get_bootstrap_dataset(data, n_examples=training_set_size)
+
+            tree = decision_tree_learning(train.examples, attributes,
+                                          train.examples, entropy_importance)
+            avg += tree_performance(tree, data)
+
+        results.append(avg / navg)
+
+    plt.plot(list(sizes), results)
+    plt.ylim(0.4, 1)
+    plt.xlabel("Training set size")
+    plt.ylabel("Correct test set classifications")
+    plt.show()
+
+
+def test_using_restaurant_example():
     from decision_trees import parser
     data = parser.parse("../data/restaurant.arff")
 
@@ -209,3 +264,9 @@ if __name__ == '__main__':
     tree = decision_tree_learning(data.examples, attributes, data.examples,
                                   importance_function=entropy_importance)
     print(tree)
+    print(tree_performance(tree, data))
+
+
+if __name__ == '__main__':
+    # test_using_restaurant_example()
+    restaurant_learning_curve_plot()

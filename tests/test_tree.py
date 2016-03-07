@@ -75,7 +75,8 @@ class TestDecisionTree(TestCase):
         attributes = ["Patrons", "Hungry"]
         examples = [ex1, ex2, ex3, ex4]
 
-        t = tree.decision_tree_learning(examples, attributes, examples)
+        t = tree.decision_tree_learning(examples, attributes, examples,
+                                        tree.basic_importance)
 
         ex1 = {"Patrons": "None", "Hungry": "Yes"}
         ex2 = {"Patrons": "Some", "Hungry": "Yes"}
@@ -96,7 +97,8 @@ class TestDecisionTree(TestCase):
         attributes = ["Hungry", "Patrons"]
         examples = [ex1, ex2, ex3, ex4]
 
-        t = tree.decision_tree_learning(examples, attributes, examples)
+        t = tree.decision_tree_learning(examples, attributes, examples,
+                                        tree.basic_importance)
 
         ex1 = {"Patrons": "None", "Hungry": "Yes"}
         ex2 = {"Patrons": "Some", "Hungry": "Yes"}
