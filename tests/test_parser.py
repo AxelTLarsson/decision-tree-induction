@@ -1,4 +1,10 @@
+import sys
+import os.path
+
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+
 from unittest import TestCase
+import unittest
 from decision_trees.parser import Parser, Lexer
 
 
@@ -44,3 +50,6 @@ class TestParser(TestCase):
             s = f.read()
             parser = Parser(Lexer.tokenize(s))
             parser.parse()
+
+if __name__ == '__main__':
+    unittest.main()

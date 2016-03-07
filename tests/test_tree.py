@@ -1,4 +1,10 @@
+import sys
+import os.path
+
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+
 from unittest import TestCase
+import unittest
 from decision_trees import tree
 from decision_trees import parser
 
@@ -180,3 +186,7 @@ class TestDecisionTree(TestCase):
         attributes = list(data.attributes.keys())
         for a in [a for a in attributes if a != "classification"]:
             print(tree.should_prune(a, data.examples))
+
+
+if __name__ == '__main__':
+    unittest.main()
