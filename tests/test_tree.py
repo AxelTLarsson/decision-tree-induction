@@ -163,6 +163,26 @@ class TestDecisionTree(TestCase):
             0
         )
 
+    def test_generalised_entropy_importance_on_book_example(self):
+        data = parser.parse("data/restaurant.arff")
+
+        classes = ["Yes", "No"]
+
+        self.assertAlmostEqual(
+            tree.generalised_entropy_importance("Patrons", data.examples, classes),
+            0.540852082973
+        )
+
+        self.assertAlmostEqual(
+            tree.generalised_entropy_importance("Type", data.examples, classes),
+            0
+        )
+
+        self.assertEqual(
+            tree.generalised_entropy_importance("Alternate", data.examples, classes),
+            0
+        )
+
     def test_B(self):
         # loaded coin
         self.assertAlmostEqual(tree.B(0.99), 0.08, places=2)

@@ -4,11 +4,12 @@ Module containing decision tree induction.
 
 from collections import Counter
 from numpy import log2
+from math import log
 from scipy.stats import chisquare
 
 
 # The confidence level to be used when pruning
-CUTOFF = 0.15
+CUTOFF = 0.05
 
 
 def get_attribute_values(attr: str, examples: list):
@@ -74,6 +75,40 @@ def entropy_importance(attr: str, examples: list):
         remainder += (pk + nk) / (p + n) * B(pk / (pk + nk))
 
     return B(p / (p + n)) - remainder
+
+
+def generalised_B(q, b):
+    if q == 0 or q == 1:
+        return 0
+    return -q * log(q, b)
+
+
+def generalised_entropy_importance(attr: str, examples: list, classes: list):
+    outcomes = [
+        len([1 for e in examples if e["classification"] == c])
+        for c in classes
+    ]
+    total_entropy = sum([
+        generalised_B(p / len(examples), b=len(classes))
+        for p in outcomes
+    ])
+
+    remainder = 0
+    for d in get_attribute_values(attr, examples):
+        subset = [e for e in examples if e[attr] == d]
+
+        outcomes_k = [
+            len([1 for e in subset if e["classification"] == c])
+            for c in classes
+        ]
+
+        remainder += sum([
+            sum(outcomes_k) / sum(outcomes) *
+            generalised_B(pk / sum(outcomes_k), b=len(classes))
+            for pk in outcomes_k
+        ])
+
+    return total_entropy - remainder
 
 
 def should_prune(attr, examples):
